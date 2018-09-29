@@ -1,7 +1,7 @@
 Requirements:
 -------------------------
 Generic:
-* Bitcoin >=0.11.1
+* Bitcoin ABC >=0.16.2
 * Python >=2.6
 * Twisted >=10.0.0
 * python-argparse (for Python =2.6)
@@ -18,7 +18,7 @@ Windows:
 * Install python win32 api wmi wrapper: https://pypi.python.org/pypi/WMI/#downloads
 * Unzip the files into C:\Python27\Lib\site-packages
 
-Running P2Pool:
+Running P2Pool-BCH-newmagic:
 -------------------------
 To use P2Pool, you must be running your own local bitcoind. For standard
 configurations, using P2Pool should be as simple as:
@@ -37,7 +37,7 @@ Run for additional options.
 
 Donations towards further development:
 -------------------------
-    1HNeqi3pJRNvXybNX4FKzZgYJsdTSqJTbk
+    bitcoincash:qqrev98ypfpghr3vmmahgf5tfxx5cdzvnuyx7aku49
 
 Official wiki:
 -------------------------
@@ -46,53 +46,6 @@ https://en.bitcoin.it/wiki/P2Pool
 Alternate web frontend:
 -------------------------
 * https://github.com/hardcpp/P2PoolExtendedFrontEnd
-
-Notes for Litecoin:
-=========================
-Requirements:
--------------------------
-In order to run P2Pool with the Litecoin network, you would need to build and install the
-ltc_scrypt module that includes the scrypt proof of work code that Litecoin uses for hashes.
-
-Linux:
-
-    cd litecoin_scrypt
-    sudo python setup.py install
-
-Windows (mingw):
-* Install MinGW: http://www.mingw.org/wiki/Getting_Started
-* Install Python 2.7: http://www.python.org/getit/
-
-In bash type this:
-
-    cd litecoin_scrypt
-    C:\Python27\python.exe setup.py build --compile=mingw32 install
-
-Windows (Microsoft Visual C++)
-* Open visual studio console
-
-In bash type this:
-
-    SET VS90COMNTOOLS=%VS110COMNTOOLS%	           # For visual c++ 2012
-    SET VS90COMNTOOLS=%VS100COMNTOOLS%             # For visual c++ 2010
-    cd litecoin_scrypt
-    C:\Python27\python.exe setup.py build --compile=mingw32 install
-	
-If you run into an error with unrecognized command line option '-mno-cygwin', see this:
-http://stackoverflow.com/questions/6034390/compiling-with-cython-and-mingw-produces-gcc-error-unrecognized-command-line-o
-
-Running P2Pool:
--------------------------
-Run P2Pool with the "--net litecoin" option.
-Run your miner program, connecting to 127.0.0.1 on port 9327.
-Forward port 9338 to the host running P2Pool.
-
-Litecoin's use of ports 9333 and 9332 conflicts with P2Pool running on
-the Bitcoin network. To avoid problems, add these lines to litecoin.conf
-and restart litecoind:
-
-    rpcport=10332
-    port=10333
 
 Sponsors:
 -------------------------
