@@ -25,11 +25,11 @@ configurations, using P2Pool should be as simple as:
 
     python run_p2pool.py
 
-Then run your miner program, connecting to 127.0.0.1 on port 9332 with any
+Then run your miner program, connecting to 127.0.0.1 on port 6964 with any
 username and password.
 
 If you are behind a NAT, you should enable TCP port forwarding on your
-router. Forward port 9333 to the host running P2Pool.
+router. Forward port 6984 to the host running P2Pool.
 
 Run for additional options.
 
