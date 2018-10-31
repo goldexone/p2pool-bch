@@ -144,17 +144,20 @@ def main(args, net, datadir_path, merged_urls, worker_endpoint):
             with open(address_path, 'wb') as f:
                 f.write(address)
             
-            if  address.find('bitcoincash:') > -1:
-                address = convert.to_legacy_address(address)
-            
+            address = convert.to_legacy_address(address)
             my_pubkey_hash = bitcoin_data.address_to_pubkey_hash(address, net.PARENT)
-            print '    ...success! Payout address:', bitcoin_data.pubkey_hash_to_address(my_pubkey_hash, net.PARENT)
-            print
+
+            print '    ...success! Payout address:', convert.to_cash_address(address)
+            print '                 Legacy format:', bitcoin_data.pubkey_hash_to_address(my_pubkey_hash, net.PARENT)
+
             pubkeys.addkey(my_pubkey_hash)
         elif args.address != 'dynamic':
+
             my_pubkey_hash = args.pubkey_hash
-            print '    ...success! Payout address:', bitcoin_data.pubkey_hash_to_address(my_pubkey_hash, net.PARENT)
-            print
+            #print '    ...success! Payout address:', bitcoin_data.pubkey_hash_to_address(my_pubkey_hash, net.PARENT)
+            print '    ...success! Payout address:', convert.to_cash_address(bitcoin_data.pubkey_hash_to_address(my_pubkey_hash, net.PARENT))
+            print '                 Legacy format:', bitcoin_data.pubkey_hash_to_address(my_pubkey_hash, net.PARENT)
+
             pubkeys.addkey(my_pubkey_hash)
         else:
             print '    Entering dynamic address mode.'
@@ -163,7 +166,8 @@ def main(args, net, datadir_path, merged_urls, worker_endpoint):
                 print ' ERROR: Can not use fewer than 2 addresses in dynamic mode. Resetting to 2.'
                 args.numaddresses = 2
             for i in range(args.numaddresses):
-                address = yield deferral.retry('Error getting a dynamic address from bitcoind:', 5)(lambda: bitcoind.rpc_getnewaddress('p2pool'))()
+                address = yield deferral.retry('Error getting a dynamic address from bitcoind:', 5)(lambda: bitcoind.rpc_getnewaddress('p2pool dynamic'))()
+                address = convert.to_legacy_address(address)
                 new_pubkey = bitcoin_data.address_to_pubkey_hash(address, net.PARENT)
                 pubkeys.addkey(new_pubkey)
 
@@ -172,7 +176,9 @@ def main(args, net, datadir_path, merged_urls, worker_endpoint):
             my_pubkey_hash = pubkeys.keys[0]
 
             for i in range(len(pubkeys.keys)):
-                print '    ...payout %d: %s' % (i, bitcoin_data.pubkey_hash_to_address(pubkeys.keys[i], net.PARENT),)
+                print '    ...payout %d: %s' % (i, convert.to_cash_address(bitcoin_data.pubkey_hash_to_address(pubkeys.keys[i], net.PARENT)),)
+                print '                  Legacy format:', bitcoin_data.pubkey_hash_to_address(pubkeys.keys[i], net.PARENT)
+
         
         print "Loading shares..."
         shares = {}
@@ -613,10 +619,9 @@ def run():
     
     if args.address is not None and args.address != 'dynamic':
         try:
-            if  args.address.find('bitcoincash:') > -1:
-                args.address = convert.to_legacy_address(args.address)
-            
+            args.address = convert.to_legacy_address(args.address)
             args.pubkey_hash = bitcoin_data.address_to_pubkey_hash(args.address, net.PARENT)
+
         except Exception, e:
             parser.error('error parsing address: ' + repr(e))
     else:
