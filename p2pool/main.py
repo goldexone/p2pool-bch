@@ -154,7 +154,6 @@ def main(args, net, datadir_path, merged_urls, worker_endpoint):
         elif args.address != 'dynamic':
 
             my_pubkey_hash = args.pubkey_hash
-            #print '    ...success! Payout address:', bitcoin_data.pubkey_hash_to_address(my_pubkey_hash, net.PARENT)
             print '    ...success! Payout address:', convert.to_cash_address(bitcoin_data.pubkey_hash_to_address(my_pubkey_hash, net.PARENT))
             print '                 Legacy format:', bitcoin_data.pubkey_hash_to_address(my_pubkey_hash, net.PARENT)
 

@@ -1,0 +1,10 @@
+*.pyc
+*.pyd
+*.dll
+*.exe
+p2poolbch.log
+p2pool-bch-newmagic.pyproj
+p2pool-bch-newmagic.sln
+\data
+\p2pool_win32*
+\v15
