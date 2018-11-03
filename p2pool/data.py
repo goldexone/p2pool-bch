@@ -58,7 +58,7 @@ def load_share(share, net, peer_addr):
     else:
         raise ValueError('unknown share type: %r' % (share['type'],))
 
-DONATION_SCRIPT = '4104ffd03de44a6e11b9917f3a29f9443283d9871c9d743ef30d5eddcd37094b64d1b3d8090496b53256786bf5c82932ec23c3b74d9f05a6f95a8b5529352656664bac'.decode('hex')
+DONATION_SCRIPT = '76a914acdfa75a44d4198a394c76939310c61b3faf8e2188ac'.decode('hex')
 
 class NewShare(object):
     VERSION = 16
@@ -940,9 +940,9 @@ def get_warnings(tracker, best_share, net, bitcoind_getinfo, bitcoind_work_value
             'An upgrade is likely necessary. Check http://p2pool.forre.st/ for more information.' % (
                 majority_desired_version, 100*desired_version_counts[majority_desired_version]/sum(desired_version_counts.itervalues())))
     
-    if bitcoind_getinfo['errors'] != '':
-        if 'This is a pre-release test build' not in bitcoind_getinfo['errors']:
-            res.append('(from bitcoind) %s' % (bitcoind_getinfo['errors'],))
+    if bitcoind_getinfo['warnings'] != '':
+        if 'This is a pre-release test build' not in bitcoind_getinfo['warnings']:
+            res.append('(from bitcoind) %s' % (bitcoind_getinfo['warnings'],))
     
     version_warning = getattr(net, 'VERSION_WARNING', lambda v: None)(bitcoind_getinfo['version'])
     if version_warning is not None:

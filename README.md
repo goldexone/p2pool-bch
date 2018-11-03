@@ -58,5 +58,3 @@ License:
 -------------------------
 
 [Available here](COPYING)
-
-

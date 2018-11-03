@@ -22,6 +22,7 @@ from nattraverso import portmapper, ipdiscover
 import bitcoin.p2p as bitcoin_p2p, bitcoin.data as bitcoin_data
 from bitcoin import stratum, worker_interface, helper
 from util import fixargparse, jsonrpc, variable, deferral, math, logging, switchprotocol
+from cashaddress import convert
 from . import networks, web, work
 import p2pool, p2pool.data as p2pool_data, p2pool.node as p2pool_node
 
@@ -105,7 +106,8 @@ def main(args, net, datadir_path, merged_urls, worker_endpoint):
         bitcoind_getinfo_var = variable.Variable(None)
         @defer.inlineCallbacks
         def poll_warnings():
-            bitcoind_getinfo_var.set((yield deferral.retry('Error while calling getinfo:')(bitcoind.rpc_getinfo)()))
+            bitcoind_getinfo_var.set((yield deferral.retry('Error while calling getblockchaininfo:')(bitcoind.rpc_getnetworkinfo)()))
+
         yield poll_warnings()
         deferral.RobustLoopingCall(poll_warnings).start(20*60)
         
@@ -137,19 +139,24 @@ def main(args, net, datadir_path, merged_urls, worker_endpoint):
             
             if address is None:
                 print '    Getting payout address from bitcoind...'
-                address = yield deferral.retry('Error getting payout address from bitcoind:', 5)(lambda: bitcoind.rpc_getaccountaddress('p2pool'))()
+                address = yield deferral.retry('Error getting payout address from bitcoind:', 5)(lambda: bitcoind.rpc_getaccountaddress('p2pool autogenerate'))()
             
             with open(address_path, 'wb') as f:
                 f.write(address)
             
+            address = convert.to_legacy_address(address)
             my_pubkey_hash = bitcoin_data.address_to_pubkey_hash(address, net.PARENT)
-            print '    ...success! Payout address:', bitcoin_data.pubkey_hash_to_address(my_pubkey_hash, net.PARENT)
-            print
+
+            print '    ...success! Payout address:', convert.to_cash_address(address)
+            print '                 Legacy format:', bitcoin_data.pubkey_hash_to_address(my_pubkey_hash, net.PARENT)
+
             pubkeys.addkey(my_pubkey_hash)
         elif args.address != 'dynamic':
+
             my_pubkey_hash = args.pubkey_hash
-            print '    ...success! Payout address:', bitcoin_data.pubkey_hash_to_address(my_pubkey_hash, net.PARENT)
-            print
+            print '    ...success! Payout address:', convert.to_cash_address(bitcoin_data.pubkey_hash_to_address(my_pubkey_hash, net.PARENT))
+            print '                 Legacy format:', bitcoin_data.pubkey_hash_to_address(my_pubkey_hash, net.PARENT)
+
             pubkeys.addkey(my_pubkey_hash)
         else:
             print '    Entering dynamic address mode.'
@@ -158,7 +165,8 @@ def main(args, net, datadir_path, merged_urls, worker_endpoint):
                 print ' ERROR: Can not use fewer than 2 addresses in dynamic mode. Resetting to 2.'
                 args.numaddresses = 2
             for i in range(args.numaddresses):
-                address = yield deferral.retry('Error getting a dynamic address from bitcoind:', 5)(lambda: bitcoind.rpc_getnewaddress('p2pool'))()
+                address = yield deferral.retry('Error getting a dynamic address from bitcoind:', 5)(lambda: bitcoind.rpc_getnewaddress('p2pool dynamic'))()
+                address = convert.to_legacy_address(address)
                 new_pubkey = bitcoin_data.address_to_pubkey_hash(address, net.PARENT)
                 pubkeys.addkey(new_pubkey)
 
@@ -167,7 +175,9 @@ def main(args, net, datadir_path, merged_urls, worker_endpoint):
             my_pubkey_hash = pubkeys.keys[0]
 
             for i in range(len(pubkeys.keys)):
-                print '    ...payout %d: %s' % (i, bitcoin_data.pubkey_hash_to_address(pubkeys.keys[i], net.PARENT),)
+                print '    ...payout %d: %s' % (i, convert.to_cash_address(bitcoin_data.pubkey_hash_to_address(pubkeys.keys[i], net.PARENT)),)
+                print '                  Legacy format:', bitcoin_data.pubkey_hash_to_address(pubkeys.keys[i], net.PARENT)
+
         
         print "Loading shares..."
         shares = {}
@@ -608,7 +618,9 @@ def run():
     
     if args.address is not None and args.address != 'dynamic':
         try:
+            args.address = convert.to_legacy_address(args.address)
             args.pubkey_hash = bitcoin_data.address_to_pubkey_hash(args.address, net.PARENT)
+
         except Exception, e:
             parser.error('error parsing address: ' + repr(e))
     else:
