@@ -6,6 +6,7 @@ import warnings
 
 import p2pool
 from p2pool.util import math, pack
+from p2pool.cashaddress import convert
 
 def hash256(data):
     return pack.IntType(256).unpack(hashlib.sha256(hashlib.sha256(data).digest()).digest())
@@ -284,6 +285,7 @@ def script2_to_address(script2, net):
     try:
         pubkey_hash = pack.IntType(160).unpack(script2[3:-2])
         script2_test2 = pubkey_hash_to_script2(pubkey_hash)
+
     except:
         pass
     else:
@@ -307,6 +309,6 @@ def script2_to_human(script2, net):
         pass
     else:
         if script2_test2 == script2:
-            return 'Address. Address: %s' % (pubkey_hash_to_address(pubkey_hash, net),)
+            return 'Address. Address: %s' % (convert.to_cash_address(pubkey_hash_to_address(pubkey_hash, net)),)
     
     return 'Unknown. Script: %s'  % (script2.encode('hex'),)

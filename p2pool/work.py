@@ -14,6 +14,7 @@ import bitcoin.getwork as bitcoin_getwork, bitcoin.data as bitcoin_data
 from bitcoin import helper, script, worker_interface
 from util import forest, jsonrpc, variable, deferral, math, pack
 import p2pool, p2pool.data as p2pool_data
+from cashaddress import convert
 
 print_throttle = 0.0
 
@@ -154,7 +155,8 @@ class WorkerBridge(worker_interface.WorkerBridge):
             return
         self.address_throttle=time.time()
         print "ATTEMPTING TO FRESHEN ADDRESS."
-        self.address = yield deferral.retry('Error getting a dynamic address from bitcoind:', 5)(lambda: self.bitcoind.rpc_getnewaddress('p2pool'))()
+        self.address = yield deferral.retry('Error getting a dynamic address from bitcoind:', 5)(lambda: self.bitcoind.rpc_getnewaddress('p2pool dynamic'))()
+        self.address = convert.to_legacy_address(self.address)
         new_pubkey = bitcoin_data.address_to_pubkey_hash(self.address, self.net)
         self.pubkeys.popleft()
         self.pubkeys.addkey(new_pubkey)
@@ -198,10 +200,12 @@ class WorkerBridge(worker_interface.WorkerBridge):
             pubkey_hash = self.my_pubkey_hash
         else:
             try:
+                user = convert.to_legacy_address(user)
                 pubkey_hash = bitcoin_data.address_to_pubkey_hash(user, self.node.net.PARENT)
             except: # XXX blah
                 if self.args.address != 'dynamic':
                     pubkey_hash = self.my_pubkey_hash
+                    print 'blah! Invalid Bitcoin Cash Address: ', user
         
         return user, pubkey_hash, desired_share_target, desired_pseudoshare_target
     
